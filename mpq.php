@@ -9,6 +9,7 @@ class MPQuestion
 
     // свойства объекта
     public $QuestionID;
+    public $Question;
     public $Choice1;
     public $Choice2; 
     public $Choice3; 
@@ -42,6 +43,7 @@ class MPQuestion
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // установим значения свойств объекта
+    $this->Question = $row["Question"];
     $this->Choice1 = $row["Choice1"];
     $this->Choice2 = $row["Choice2"];
     $this->Choice3 = $row["Choice3"];

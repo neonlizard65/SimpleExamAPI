@@ -5,7 +5,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: access");
 header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json");
+header("Content-Type: application/json; charset=utf-8");
 
 // подключение файла для соединения с базой и файл с объектом
 include_once "dbconfig.php";
@@ -57,6 +57,7 @@ else if ($id > 0 && $id < 77)
         // создание массива
         $mpq_arr = array(
             "QuestionID" =>  $mpq->QuestionID,
+            "Question" => $mpq->Question,
             "Choice1" => $mpq->Choice1,
             "Choice2" => $mpq->Choice2,
             "Choice3" => $mpq->Choice3,
