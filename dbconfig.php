@@ -6,7 +6,7 @@ class Database
     private $host = "localhost";
     private $db_name = "exam";
     private $username = "aleksei";
-    private $password = "###########";
+    private $password = "##########";
     public $conn;
 
     // получаем соединение с БД

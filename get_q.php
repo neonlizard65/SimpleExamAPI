@@ -9,77 +9,80 @@ header("Content-Type: application/json; charset=utf-8");
 
 // подключение файла для соединения с базой и файл с объектом
 include_once "dbconfig.php";
-include_once "mpq.php";
-include_once "extq.php";
+include_once "question.php";
 
 // получаем соединение с базой данных
 $database = new Database();
 $db = $database->getConnection();
+$question = new Question($db);
 
-// подготовка объекта
-$mpq = new MPQuestion($db);
-$extq = new ExtQuestion($db);
 
-$id = isset($_GET["id"]) ? $_GET["id"] : die();
+$mpq = $question->get_mp();
+$exq = $question->get_ex();
 
-if($id >= 77){
-    // установим свойство ID записи для чтения
-    $extq->QuestionID = $id;
-    // получим детали 
-    $extq->readOne();
+$num = $mpq->rowCount() + $exq->rowCount();
 
-    if ($extq->Question != null) {
+if($num > 0){
+    $question_array = array();
+    $question_array["multiplechoice"] = array();
+    $question_array["multiplechoice"]["architecture"] = array();
+    $question_array["multiplechoice"]["network"] = array();
+    $question_array["multiplechoice"]["os"] = array();
+    $question_array["extendedanswer"] = array();
+    $question_array["extendedanswer"]["architecture"] = array();
+    $question_array["extendedanswer"]["network"] = array();
+    $question_array["extendedanswer"]["os"] = array();
 
-        // создание массива
-        $extq_arr = array(
-            "QuestionID" =>  $extq->QuestionID,
-            "Question" => $extq->Question,
-            "CategoryId" => $extq->CategoryId,
-            "ImagePath" => $extq->ImagePath
+    while($row = $mpq->fetch(PDO::FETCH_ASSOC)){
+        extract($row);
+        $question_item = array(
+            "QuestionID" => $QuestionID,
+            "CategoryName" => $CategoryName,
+            "CategoryId" => $CategoryId,
+            "Question" => $Question,
+            "Choice1" => $Choice1,
+            "Choice2" => $Choice2,
+            "Choice3" => $Choice3,
+            "Choice4" => $Choice4,
+            "Choice5" => $Choice5,
+            "RightChoice" => $RightChoice,
+            "ImagePath" => $ImagePath
         );
-
-        // код ответа - 200 OK
-        http_response_code(200);
-
-        // вывод в формате json
-        echo json_encode($extq_arr);
+        if($question_item["CategoryId"] == 1){
+            array_push($question_array["multiplechoice"]["architecture"], $question_item);
+        } 
+        else if($question_item["CategoryId"] == 2){
+            array_push($question_array["multiplechoice"]["network"], $question_item);
+        } 
+        else if($question_item["CategoryId"] == 3){
+            array_push($question_array["multiplechoice"]["os"], $question_item);
+        }
     }
+    while($row = $exq->fetch(PDO::FETCH_ASSOC)){
+        extract($row);
+        $question_item = array(
+            "QuestionID" => $QuestionID,
+            "CategoryName" => $CategoryName,
+            "CategoryId" => $CategoryId,
+            "Question" => $Question,
+            "ImagePath" => $ImagePath
+        );
+        if($question_item["CategoryId"] == 1){
+            array_push($question_array["extendedanswer"]["architecture"], $question_item);
+        } 
+        else if($question_item["CategoryId"] == 2){
+            array_push($question_array["extendedanswer"]["network"], $question_item);
+        } 
+        else if($question_item["CategoryId"] == 3){
+            array_push($question_array["extendedanswer"]["os"], $question_item);
+        }
+    }
+    http_response_code(200);
+    echo json_encode($question_array);
 }
-else if ($id > 0 && $id < 77)
-{
-    // установим свойство ID записи для чтения
-    $mpq->QuestionID = $id;
-    // получим детали 
-    $mpq->readOne();
-
-    if ($mpq->Choice1 != null) {
-
-        // создание массива
-        $mpq_arr = array(
-            "QuestionID" =>  $mpq->QuestionID,
-            "Question" => $mpq->Question,
-            "Choice1" => $mpq->Choice1,
-            "Choice2" => $mpq->Choice2,
-            "Choice3" => $mpq->Choice3,
-            "Choice4" => $mpq->Choice4,
-            "Choice5" => $mpq->Choice5,
-            "RightChoice" => $mpq->RightChoice,
-            "CategoryId" => $mpq->CategoryId,
-            "ImagePath" => $mpq->ImagePath
-        );
-
-        // код ответа - 200 OK
-        http_response_code(200);
-
-        // вывод в формате json
-        echo json_encode($mpq_arr);
-    }
-} 
 else {
     // код ответа - 404 Не найдено
     http_response_code(404);
-
-    // сообщим пользователю, что такой вопрос не существует
-    echo json_encode(array("message" => "Вопрос не существует"), JSON_UNESCAPED_UNICODE);
+    echo("Не найдено");
 }
 ?>
